@@ -8,18 +8,22 @@ from instagrapi.exceptions import UserNotFound
 app = Flask(__name__)
 
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
+IG_USERNAME = os.environ.get("IG_USERNAME")
+IG_PASSWORD = os.environ.get("IG_PASSWORD")
+
 TELEGRAM_API = f"https://api.telegram.org/bot{BOT_TOKEN}"
 
 cl = Client()
 
 
+def instagram_login():
+    cl.login(IG_USERNAME, IG_PASSWORD)
+
+
 def send_message(chat_id, text):
     requests.post(
         f"{TELEGRAM_API}/sendMessage",
-        json={
-            "chat_id": chat_id,
-            "text": text
-        },
+        json={"chat_id": chat_id, "text": text},
         timeout=15
     )
 
@@ -47,10 +51,10 @@ def check_username(username):
         )
 
     except Exception as e:
-        return (
-            f"⚠️ ERROR\n\n"
-            f"{type(e).__name__}: {str(e)[:300]}"
-        )
+        return f"⚠️ ERROR\n\n{type(e).__name__}: {str(e)[:300]}"
+
+
+instagram_login()
 
 
 @app.route("/")
@@ -74,10 +78,8 @@ def webhook():
             chat_id,
             "Nevergoat IG Checker\n\nKirim username IG yang mau dicek."
         )
-
     elif text.startswith("/"):
         send_message(chat_id, "Command ga dikenal jir.")
-
     else:
         send_message(chat_id, check_username(text))
 
